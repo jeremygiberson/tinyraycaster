@@ -24,7 +24,8 @@ class GameView: NSView {
             gradient(context: mapBuffer!)
             drawMap(framebuffer: mapBuffer!)
             drawPlayer(framebuffer: mapBuffer!)
-            drawRay(x: player_x, y: player_y, a: player_a, framebuffer: mapBuffer!)
+            //drawRay(x: player_x, y: player_y, a: player_a, framebuffer: mapBuffer!)
+            drawFov(x: player_x, y: player_y, a: player_a, count: 512, framebuffer: mapBuffer!)
         }
         
         ctx.draw(mapBuffer!.makeImage()!, in: CGRect(x: 0, y: 0, width: 512, height: 512))
@@ -92,9 +93,15 @@ class GameView: NSView {
             
             let pix_x = cx * CGFloat(cell_w)
             let pix_y = cy * CGFloat(cell_h)
-            print("\(pix_x),\(pix_y)")
             
             framebuffer.fill(CGRect(x: pix_x, y: pix_y, width: 1, height: 1))
+        }
+    }
+    
+    private func drawFov(x:CGFloat, y:CGFloat, a:CGFloat, count:Int, framebuffer:CGContext) {
+        for i in 0..<count {
+            let angle = (a-(fov/2)) + fov*(CGFloat(i)/CGFloat(count));
+            drawRay(x: x, y: y, a: angle, framebuffer: framebuffer)
         }
     }
     
@@ -127,12 +134,12 @@ class GameView: NSView {
         "0 0000000      0" +
         "0              0" +
         "0002222222200000";
-    let map_w = 16;
-    let map_h = 16;
+    let map_w = 16
+    let map_h = 16
     
-    let player_x:CGFloat = 3.456; // player x position
-    let player_y:CGFloat = 2.345; // player y position
-    let player_a:CGFloat = 1.523;
-    
+    let player_x:CGFloat = 3.456 // player x position
+    let player_y:CGFloat = 2.345 // player y position
+    let player_a:CGFloat = 1.523
+    let fov:CGFloat = CGFloat.pi/3.0
 
 }
