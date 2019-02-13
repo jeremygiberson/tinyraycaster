@@ -29,15 +29,17 @@ class GameView: NSView {
             drawFov(x: player_x, y: player_y, a: player_a, count: 512, framebuffer: mapBuffer!)
         }
         
-        if fpsBuffer == nil {
-            fpsBuffer = frameBuffer(width: 512, height: 348, like: ctx)
-            fpsBuffer?.setFillColor(red: 1, green: 1, blue: 1, alpha: 1)
-            fpsBuffer?.fill(CGRect(x: 0, y: 0, width: 512, height: 348))
-            drawFov3D(x: player_x, y: player_y, a: player_a, width: 512, height: 348, framebuffer: fpsBuffer!)
-        }
-        
         ctx.draw(mapBuffer!.makeImage()!, in: CGRect(x: 0, y: 0, width: 512, height: 512))
-        ctx.draw(fpsBuffer!.makeImage()!, in: CGRect(x: 512, y: 0, width: 512, height: 348))
+        
+        draw3d(width: 328, height: 256, context: ctx)
+    }
+    
+    private func draw3d(width:Int, height:Int, context:CGContext){
+        fpsBuffer = frameBuffer(width: width, height: height, like: context)
+        fpsBuffer?.setFillColor(red: 1, green: 1, blue: 1, alpha: 1)
+        fpsBuffer?.fill(CGRect(x: 0, y: 0, width: width, height: height))
+        drawFov3D(x: player_x, y: player_y, a: player_a, width: width, height: height, framebuffer: fpsBuffer!)
+        context.draw(fpsBuffer!.makeImage()!, in: CGRect(x: 512, y: 0, width: width, height: height))
     }
     
     private func gradient(context:CGContext) {
@@ -177,9 +179,9 @@ class GameView: NSView {
     let map_w = 16
     let map_h = 16
     
-    let player_x:CGFloat = 3.456 // player x position
-    let player_y:CGFloat = 2.345 // player y position
-    let player_a:CGFloat = 1.523
+    var player_x:CGFloat = 3.456 // player x position
+    var player_y:CGFloat = 2.345 // player y position
+    var player_a:CGFloat = 1.523
     let fov:CGFloat = CGFloat.pi/3.0
 
 }

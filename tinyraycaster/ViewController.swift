@@ -9,11 +9,17 @@
 import Cocoa
 
 class ViewController: NSViewController {
-
+    @IBOutlet var uiGameView: GameView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
         // Do any additional setup after loading the view.
+        let timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { timer in
+            
+            self.uiGameView.player_a += 0.05
+            self.uiGameView.setNeedsDisplay(self.uiGameView.visibleRect)
+        }
     }
 
     override var representedObject: Any? {
@@ -24,4 +30,3 @@ class ViewController: NSViewController {
 
 
 }
-
