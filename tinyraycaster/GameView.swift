@@ -12,6 +12,7 @@ import Cocoa
 class GameView: NSView {
     
     var mapBuffer: CGContext?
+    var fpsBuffer: CGContext?
     
     override func draw(_ dirtyRect: CGRect) {
         guard let ctx = NSGraphicsContext.current?.cgContext else {
@@ -28,7 +29,15 @@ class GameView: NSView {
             drawFov(x: player_x, y: player_y, a: player_a, count: 512, framebuffer: mapBuffer!)
         }
         
+        if fpsBuffer == nil {
+            fpsBuffer = frameBuffer(width: 512, height: 348, like: ctx)
+            fpsBuffer?.setFillColor(red: 1, green: 1, blue: 1, alpha: 1)
+            fpsBuffer?.fill(CGRect(x: 0, y: 0, width: 512, height: 348))
+            drawFov3D(x: player_x, y: player_y, a: player_a, width: 512, height: 348, framebuffer: fpsBuffer!)
+        }
+        
         ctx.draw(mapBuffer!.makeImage()!, in: CGRect(x: 0, y: 0, width: 512, height: 512))
+        ctx.draw(fpsBuffer!.makeImage()!, in: CGRect(x: 512, y: 0, width: 512, height: 348))
     }
     
     private func gradient(context:CGContext) {
@@ -84,7 +93,7 @@ class GameView: NSView {
         
         for t in stride(from: CGFloat(0.0), to: CGFloat(20.0), by: CGFloat(0.05)) {
             let cx = x + t*cos(a);
-            let cy = y + t*sin(player_a);
+            let cy = y + t*sin(a);
             let offset = Int(Int(cx) + (Int(cy) * map_w))
             let index = map.index(map.startIndex, offsetBy: offset)
             if offset < map.count && map[index] != " " {
@@ -105,6 +114,24 @@ class GameView: NSView {
         }
     }
     
+    private func drawFov3D(x:CGFloat, y:CGFloat, a:CGFloat, width:Int, height:Int, framebuffer:CGContext) {
+        let theta:CGFloat = fov/CGFloat(width)
+        var angle = a-(fov/2.0)
+        let cY:CGFloat = CGFloat(height)/2.0
+        framebuffer.setFillColor(red: 0.7, green: 0.7, blue: 0.7, alpha: 1)
+        
+        for i in 0..<width {
+            let r = ray(x:x, y:y, a: angle)
+            angle += theta
+            if r.hit == false {
+                continue
+            }
+
+            let wallHeight = CGFloat(height) / r.length!
+            framebuffer.fill(CGRect(x: i, y: Int(cY-(wallHeight/2)), width: 1, height: Int(wallHeight)))
+        }
+    }
+    
     private func frameBuffer(width:Int, height:Int, like ctx:CGContext) -> CGContext {
         
         let buffer:CGContext? = CGContext(data: nil,
@@ -115,6 +142,19 @@ class GameView: NSView {
                                          space: ctx.colorSpace!,
                                          bitmapInfo: ctx.bitmapInfo.rawValue)
         return buffer!
+    }
+    
+    private func ray(x:CGFloat, y:CGFloat, a:CGFloat) -> RayResult {
+        for t in stride(from: CGFloat(0.0), to: CGFloat(20.0), by: CGFloat(0.05)) {
+            let cx = x + t*cos(a);
+            let cy = y + t*sin(a);
+            let offset = Int(Int(cx) + (Int(cy) * map_w))
+            let index = map.index(map.startIndex, offsetBy: offset)
+            if offset < map.count && map[index] != " " {
+                return RayResult(hit: true, hitX: cx, hitY: cy, length:t)
+            }
+        }
+        return RayResult(hit: false, hitX: nil, hitY: nil, length:nil)
     }
     
     let map =
@@ -142,4 +182,11 @@ class GameView: NSView {
     let player_a:CGFloat = 1.523
     let fov:CGFloat = CGFloat.pi/3.0
 
+}
+
+struct RayResult {
+    var hit:Bool
+    var hitX:CGFloat?
+    var hitY:CGFloat?
+    var length:CGFloat?
 }
