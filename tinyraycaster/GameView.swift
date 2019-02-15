@@ -1,9 +1,7 @@
 //
 //  GameView.swift
 //  tinyraycaster
-//
-//  Created by Jeremy Giberson on 2/12/19.
-//  Copyright © 2019 Jeremy Giberson. All rights reserved.
+//  https://github.com/ssloy/tinyraycaster/wiki/Part-1:-crude-3D-renderings
 //
 
 import Foundation
@@ -120,6 +118,14 @@ class GameView: NSView {
         let theta:CGFloat = fov/CGFloat(width)
         var angle = a-(fov/2.0)
         let cY:CGFloat = CGFloat(height)/2.0
+        
+        let pallete = [
+            "0": CGColor(red: 0.9, green: 0.9, blue: 0.9, alpha: 1),
+            "1": CGColor(red: 0.3, green: 0.4, blue: 0.3, alpha: 1),
+            "2": CGColor(red: 0.3, green: 0.3, blue: 0.4, alpha: 1),
+            "3": CGColor(red: 0.4, green: 0.3, blue: 0.3, alpha: 1)
+        ]
+        
         framebuffer.setFillColor(red: 0.7, green: 0.7, blue: 0.7, alpha: 1)
         
         for i in 0..<width {
@@ -130,6 +136,7 @@ class GameView: NSView {
             }
 
             let wallHeight = CGFloat(height) / r.length!
+            framebuffer.setFillColor(pallete[String(r.hitCell!)]!)
             framebuffer.fill(CGRect(x: i, y: Int(cY-(wallHeight/2)), width: 1, height: Int(wallHeight)))
         }
     }
@@ -153,10 +160,10 @@ class GameView: NSView {
             let offset = Int(Int(cx) + (Int(cy) * map_w))
             let index = map.index(map.startIndex, offsetBy: offset)
             if offset < map.count && map[index] != " " {
-                return RayResult(hit: true, hitX: cx, hitY: cy, length:t)
+                return RayResult(hit: true, hitX: cx, hitY: cy, length:t, hitCell: map[index])
             }
         }
-        return RayResult(hit: false, hitX: nil, hitY: nil, length:nil)
+        return RayResult(hit: false, hitX: nil, hitY: nil, length:nil, hitCell: nil)
     }
     
     let map =
@@ -191,4 +198,20 @@ struct RayResult {
     var hitX:CGFloat?
     var hitY:CGFloat?
     var length:CGFloat?
+    var hitCell:Character?
+}
+
+struct Map {
+    let data:String
+    let width:Int
+    let height:Int
+    
+    func test(x:Int, y:Int) -> Character {
+        let offset = Int(x + y * width)
+        let index = data.index(data.startIndex, offsetBy: offset)
+        return data[index]
+    }
+    func test(x:CGFloat, y:CGFloat) -> Character {
+        return test(x: Int(x), y: Int(y))
+    }
 }
