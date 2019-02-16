@@ -11,6 +11,7 @@ class GameView: NSView {
     
     var mapBuffer: CGContext?
     var fpsBuffer: CGContext?
+    var textureImage: CGImage?
     
     override func draw(_ dirtyRect: CGRect) {
         guard let ctx = NSGraphicsContext.current?.cgContext else {
@@ -27,7 +28,15 @@ class GameView: NSView {
             drawFov(x: player_x, y: player_y, a: player_a, count: 512, framebuffer: mapBuffer!)
         }
         
+        if textureImage == nil {
+            textureImage = loadTexture(name: "textures")
+        }
+        
         ctx.draw(mapBuffer!.makeImage()!, in: CGRect(x: 0, y: 0, width: 512, height: 512))
+        
+        ctx.draw(textureImage!.cropping(to: CGRect(x: 0, y: 0, width: 32, height: 32))!, in: CGRect(x: 0, y: 0, width: 64, height: 64))
+        //ctx.draw(textureImage!, in: CGRect(x: 0, y: 0, width: 64, height: 64))
+
         
         draw3d(width: 328, height: 256, context: ctx)
     }
@@ -135,7 +144,8 @@ class GameView: NSView {
                 continue
             }
 
-            let wallHeight = CGFloat(height) / r.length!
+            //let wallHeight = CGFloat(height) / r.length!
+            let wallHeight = CGFloat(height) / ((r.length!)*cos(angle-a))
             framebuffer.setFillColor(pallete[String(r.hitCell!)]!)
             framebuffer.fill(CGRect(x: i, y: Int(cY-(wallHeight/2)), width: 1, height: Int(wallHeight)))
         }
@@ -164,6 +174,33 @@ class GameView: NSView {
             }
         }
         return RayResult(hit: false, hitX: nil, hitY: nil, length:nil, hitCell: nil)
+    }
+    
+    private func loadTexture(name:String) -> CGImage? {
+        guard let bundlePath = Bundle.main.path(forResource: name, ofType: "png") else {
+            print("could not find \(name) in bundle")
+            return nil
+        }
+        guard let url = Bundle.main.url(forResource: name, withExtension: "png") else {
+            return nil
+        }
+        
+        guard let data = try? Data(contentsOf: url) else {
+            print("\(#file) \(#function) cannot read data at \(url.absoluteString)");
+            return nil
+        }
+        
+        guard let imgRep = NSBitmapImageRep(data: data) else {
+            print("\(#file) \(#function) cannot create bitmap image rep from data at \(url.absoluteString)");
+            return nil
+        }
+        
+        guard let cgImage = imgRep.cgImage else {
+            print("\(#file) \(#function) cannot get cgImage out of imageRep from \(url.absoluteString)");
+            return nil
+        }
+        
+        return cgImage
     }
     
     let map =
