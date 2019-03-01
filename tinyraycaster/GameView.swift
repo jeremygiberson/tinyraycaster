@@ -2,7 +2,7 @@
 //  GameView.swift
 //  tinyraycaster
 //  https://github.com/ssloy/tinyraycaster/wiki/Part-1:-crude-3D-renderings
-//
+// todo: https://github.com/nst/BitmapCanvas for offscreen canvas?
 
 import Foundation
 import Cocoa
@@ -34,11 +34,11 @@ class GameView: NSView {
         
         ctx.draw(mapBuffer!.makeImage()!, in: CGRect(x: 0, y: 0, width: 512, height: 512))
         
-        ctx.draw(textureImage!.cropping(to: CGRect(x: 0, y: 0, width: 32, height: 32))!, in: CGRect(x: 0, y: 0, width: 64, height: 64))
+        //ctx.draw(textureImage!.cropping(to: CGRect(x: 0, y: 0, width: 32, height: 32))!, in: CGRect(x: 0, y: 0, width: 64, height: 64))
         //ctx.draw(textureImage!, in: CGRect(x: 0, y: 0, width: 64, height: 64))
 
         
-        draw3d(width: 328, height: 256, context: ctx)
+        draw3d(width: 512, height: 512, context: ctx)
     }
     
     private func draw3d(width:Int, height:Int, context:CGContext){
@@ -144,10 +144,23 @@ class GameView: NSView {
                 continue
             }
 
+            let hitX = r.hitX! - floor(r.hitX!+0.5)
+            let hitY = r.hitY! - floor(r.hitY!+0.5)
+            
+            var texW = Int((abs(hitY) > abs(hitX) ? hitY : hitX) * CGFloat(tex_size))
+            if texW < 0 {
+                texW += tex_size
+            }
+            let offsetY = 0
+            var offsetX = (Int(String(r.hitCell!))! * tex_size) + texW
+            
+            
             //let wallHeight = CGFloat(height) / r.length!
             let wallHeight = CGFloat(height) / ((r.length!)*cos(angle-a))
-            framebuffer.setFillColor(pallete[String(r.hitCell!)]!)
-            framebuffer.fill(CGRect(x: i, y: Int(cY-(wallHeight/2)), width: 1, height: Int(wallHeight)))
+            //framebuffer.setFillColor(pallete[String(r.hitCell!)]!)
+            //framebuffer.fill(CGRect(x: i, y: Int(cY-(wallHeight/2)), width: 1, height: Int(wallHeight)))
+            framebuffer.draw(textureImage!.cropping(to: CGRect(x: offsetX, y: offsetY, width: 1, height: tex_size))!, in: CGRect(x: i, y: Int(cY-(wallHeight/2)), width: 1, height: Int(wallHeight)))
+            
         }
     }
     
@@ -223,6 +236,8 @@ class GameView: NSView {
     let map_w = 16
     let map_h = 16
     
+    let tex_size = 32
+    
     var player_x:CGFloat = 3.456 // player x position
     var player_y:CGFloat = 2.345 // player y position
     var player_a:CGFloat = 1.523
@@ -252,3 +267,5 @@ struct Map {
         return test(x: Int(x), y: Int(y))
     }
 }
+
+
